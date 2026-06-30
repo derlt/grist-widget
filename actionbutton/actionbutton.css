@@ -67,3 +67,52 @@ body {
 .button:hover {
   opacity: 0.9;
 }
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background: var(--grist-theme-bg, white);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 360px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.confirm-text {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--grist-theme-fg, #333);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-cancel {
+  background: transparent;
+  border: 1px solid var(--grist-theme-border, #ccc);
+  color: var(--grist-theme-fg, #333);
+}
+
+.confirm-cancel:hover {
+  background: var(--grist-theme-bg-tertiary, #f5f5f5);
+  opacity: 1;
+}
+
+.confirm-ok {
+  background: #1486ff;
+}

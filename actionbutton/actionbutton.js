@@ -11,7 +11,8 @@ let data = {
   message: null,
   buttonGroups: [],
   descGroup: null,
-  descIdx: null
+  descIdx: null,
+  confirmDialog: null
 }
 
 function handleError(err) {
@@ -19,7 +20,18 @@ function handleError(err) {
   data.status = String(err).replace(/^Error: /, '');
 }
 
-async function applyActions(actions) {
+function applyActions(actions, confirm, confirmText) {
+  if (confirm) {
+    data.confirmDialog = {
+      actions: actions,
+      confirmText: confirmText || 'Are you sure?'
+    };
+    return;
+  }
+  executeActions(actions);
+}
+
+async function executeActions(actions) {
   data.message = 'Working...';
   try {
     await grist.docApi.applyUserActions(actions);
@@ -27,6 +39,16 @@ async function applyActions(actions) {
   } catch (e) {
     data.message = `Please grant full access for writing. (${e})`;
   }
+}
+
+function doConfirm() {
+  var actions = data.confirmDialog.actions;
+  data.confirmDialog = null;
+  executeActions(actions);
+}
+
+function cancelConfirm() {
+  data.confirmDialog = null;
 }
 
 function onRecord(row, mappings) {
@@ -92,6 +114,6 @@ ready(function() {
   new Vue({
     el: '#app',
     data: data,
-    methods: {applyActions}
+    methods: {applyActions, doConfirm, cancelConfirm}
   });
 });

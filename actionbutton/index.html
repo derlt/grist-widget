@@ -5,11 +5,20 @@
     <title>Grist Action Button</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
-    <script src="actionbutton.js?ver=2"></script>
-    <link rel="stylesheet" href="actionbutton.css?ver=2">
+    <script src="actionbutton.js?ver=3"></script>
+    <link rel="stylesheet" href="actionbutton.css?ver=3">
   </head>
   <body>
     <div id="app">
+      <div class="confirm-overlay" v-if="confirmDialog" v-on:click.self="cancelConfirm">
+        <div class="confirm-dialog">
+          <p class="confirm-text">{{ confirmDialog.confirmText }}</p>
+          <div class="confirm-actions">
+            <button class="button confirm-cancel" v-on:click="cancelConfirm">Cancel</button>
+            <button class="button confirm-ok" v-on:click="doConfirm">Confirm</button>
+          </div>
+        </div>
+      </div>
       <div class="status" v-if="status">
         <template v-if="status === 'waiting'">
           <p>Waiting for data...</p>
@@ -24,7 +33,7 @@
           <div class="group-container">
             <button class="button"
                     v-for="(btn, btnIdx) in group.buttons"
-                    v-on:click="applyActions(btn.actions)"
+                    v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
                     v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
                     v-on:mouseleave="descGroup = null; descIdx = null">
               {{ btn.button }}
