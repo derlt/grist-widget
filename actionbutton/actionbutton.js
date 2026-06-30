@@ -6,17 +6,12 @@ function ready(fn) {
   }
 }
 
-const column = 'ActionButton';
-let app = undefined;
 let data = {
   status: 'waiting',
-  result: null,
-  inputs: [{
-    description: null,
-    button: null,
-    actions: null,
-  }],
-  desc: null
+  message: null,
+  buttonGroups: [],
+  descGroup: null,
+  descIdx: null
 }
 
 function handleError(err) {
@@ -25,7 +20,7 @@ function handleError(err) {
 }
 
 async function applyActions(actions) {
-  data.results = "Working...";
+  data.message = 'Working...';
   try {
     await grist.docApi.applyUserActions(actions);
     data.message = 'Done';
@@ -37,40 +32,64 @@ async function applyActions(actions) {
 function onRecord(row, mappings) {
   try {
     data.status = '';
-    data.results = null;
-    // If there is no mapping, test the original record.
-    row = grist.mapColumnNames(row) || row;
-    if (!row.hasOwnProperty(column)) {
-      throw new Error(`Need a visible column named "${column}". You can map a custom column in the Creator Panel.`);
+    data.message = null;
+    data.buttonGroups = [];
+    data.descGroup = null;
+    data.descIdx = null;
+
+    if (!mappings || !mappings.ActionButton) {
+      data.status = 'Please map at least one column to "Action Buttons" in the Creator Panel.';
+      return;
     }
-    let btns = row[column]
-    // If only one action button is defined, put it within an Array
-    if (!Array.isArray(btns)) {
-      btns = [ btns ]
+
+    const mappedColumns = Array.isArray(mappings.ActionButton)
+      ? mappings.ActionButton
+      : [mappings.ActionButton];
+
+    if (!mappedColumns.length) {
+      data.status = 'Please map at least one column to "Action Buttons" in the Creator Panel.';
+      return;
     }
+
     const keys = ['button', 'description', 'actions'];
-    for (btn of btns) {
-      if (!btn || keys.some(k => !btn[k])) {
-        const allKeys = keys.map(k => JSON.stringify(k)).join(", ");
-        const missing = keys.filter(k => !btn?.[k]).map(k => JSON.stringify(k)).join(", ");
-        const gristName = mappings?.[column] || column;
-        throw new Error(`"${gristName}" cells should contain an object with keys ${allKeys}. ` +
-          `Missing keys: ${missing}`);
+
+    for (const colName of mappedColumns) {
+      if (!row.hasOwnProperty(colName)) continue;
+
+      let btns = row[colName];
+      if (btns === null || btns === undefined) continue;
+      if (!Array.isArray(btns)) btns = [btns];
+      if (!btns.length) continue;
+
+      for (const btn of btns) {
+        if (!btn || keys.some(k => !btn[k])) {
+          const allKeys = keys.map(k => JSON.stringify(k)).join(", ");
+          const missing = keys.filter(k => !btn?.[k]).map(k => JSON.stringify(k)).join(", ");
+          throw new Error(`Column "${colName}" cells should contain an object with keys ${allKeys}. ` +
+            `Missing keys: ${missing}`);
+        }
       }
+
+      data.buttonGroups.push({
+        label: colName,
+        buttons: btns
+      });
     }
-    data.inputs = btns;
+
+    if (!data.buttonGroups.length) {
+      data.status = 'No actions configured for this record.';
+    }
   } catch (err) {
     handleError(err);
   }
 }
 
 ready(function() {
-  // Update the widget anytime the document data changes.
-  grist.ready({columns: [{name: column, title: "Action"}]});
+  grist.ready({columns: [{name: "ActionButton", title: "Action Buttons", allowMultiple: true}]});
   grist.onRecord(onRecord);
 
   Vue.config.errorHandler = handleError;
-  app = new Vue({
+  new Vue({
     el: '#app',
     data: data,
     methods: {applyActions}
