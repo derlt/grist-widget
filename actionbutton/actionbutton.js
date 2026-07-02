@@ -38,14 +38,25 @@ var DEFAULTS = {
   gridColumns: 'auto'
 };
 
+var VALID_LAYOUTS = ['horizontal', 'vertical', 'grid'];
+var VALID_GRID_COLUMNS = ['auto', '2', '3', '4'];
+
+function validGridColumns(value) {
+  return VALID_GRID_COLUMNS.indexOf(value) >= 0 ? value : DEFAULTS.gridColumns;
+}
+
 function mergeDefaults(opts) {
   opts = opts || {};
+  var layout = opts.layout;
+  if (VALID_LAYOUTS.indexOf(layout) < 0) {
+    layout = DEFAULTS.layout;
+  }
   return {
     variant: opts.variant || DEFAULTS.variant,
     size: opts.size || DEFAULTS.size,
     icon: typeof opts.icon === 'string' ? opts.icon : DEFAULTS.icon,
-    layout: opts.layout || DEFAULTS.layout,
-    gridColumns: opts.gridColumns || DEFAULTS.gridColumns
+    layout: layout,
+    gridColumns: validGridColumns(opts.gridColumns)
   };
 }
 
@@ -172,11 +183,16 @@ function buttonClasses(btn) {
 }
 
 function containerClasses() {
+  var cls = ['group-container'];
   var layout = data.options.layout;
-  if (layout === 'grid') {
-    return ['group-container', 'ab-layout-grid', 'ab-cols-' + data.options.gridColumns];
+  if (layout === 'horizontal') {
+    cls.push('ab-layout-horizontal');
+  } else if (layout === 'vertical') {
+    cls.push('ab-layout-vertical');
+  } else if (layout === 'grid') {
+    cls.push('ab-layout-grid', 'ab-cols-' + validGridColumns(data.options.gridColumns));
   }
-  return ['group-container', 'ab-layout-' + layout];
+  return cls;
 }
 
 function iconSvg(name) {
@@ -195,13 +211,14 @@ function openConfig() {
 }
 
 function saveConfig() {
-  grist.widgetApi.setOptions({
+  data.options = {
     variant: data.draftOptions.variant,
     size: data.draftOptions.size,
     icon: data.draftOptions.icon,
     layout: data.draftOptions.layout,
     gridColumns: data.draftOptions.gridColumns
-  });
+  };
+  grist.widgetApi.setOptions(data.options);
   data.config = false;
 }
 
@@ -224,6 +241,12 @@ ready(function() {
   new Vue({
     el: '#app',
     data: data,
+    watch: {
+      'options.layout': function() {
+        this.descGroup = null;
+        this.descIdx = null;
+      }
+    },
     methods: {
       applyActions: applyActions,
       doConfirm: doConfirm,

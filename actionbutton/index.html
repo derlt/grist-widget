@@ -5,8 +5,8 @@
     <title>Grist Action Button</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
-    <script src="actionbutton.js?ver=4"></script>
-    <link rel="stylesheet" href="actionbutton.css?ver=4">
+    <script src="actionbutton.js?ver=15"></script>
+    <link rel="stylesheet" href="actionbutton.css?ver=15">
   </head>
   <body>
     <div id="app">
@@ -90,23 +90,46 @@
           </template>
         </div>
         <template v-else>
-          <div class="group" v-for="(group, groupIdx) in buttonGroups" :key="groupIdx">
-            <div class="group-label">{{ group.label }}</div>
+          <!-- Vertical layout: groups stack with labels and separators -->
+          <template v-if="options.layout === 'vertical'">
+            <div class="group" v-for="(group, groupIdx) in buttonGroups" :key="groupIdx">
+              <div class="group-label">{{ group.label }}</div>
+              <div :class="containerClasses()">
+                <button v-for="(btn, btnIdx) in group.buttons"
+                        :class="buttonClasses(btn)"
+                        v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
+                        v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
+                        v-on:mouseleave="descGroup = null; descIdx = null">
+                  <span class="ab-icon" v-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
+                  {{ btn.button }}
+                </button>
+              </div>
+              <hr class="group-separator" v-if="groupIdx < buttonGroups.length - 1">
+            </div>
+          </template>
+
+          <!-- Horizontal/Grid layout: groups share one container but keep labels -->
+          <template v-else>
             <div :class="containerClasses()">
-              <button v-for="(btn, btnIdx) in group.buttons"
-                      :class="buttonClasses(btn)"
-                      v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
-                      v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
-                      v-on:mouseleave="descGroup = null; descIdx = null">
-                <span class="ab-icon" v-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
-                {{ btn.button }}
-              </button>
+              <div class="button-group" v-for="(group, groupIdx) in buttonGroups" :key="groupIdx">
+                <div class="group-label">{{ group.label }}</div>
+                <button v-for="(btn, btnIdx) in group.buttons"
+                        :class="buttonClasses(btn)"
+                        v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
+                        v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
+                        v-on:mouseleave="descGroup = null; descIdx = null">
+                  <span class="ab-icon" v-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
+                  {{ btn.button }}
+                </button>
+              </div>
             </div>
-            <div class="description" v-if="descGroup === groupIdx && descIdx !== null">
-              {{ group.buttons[descIdx].description }}
-            </div>
-            <hr class="group-separator" v-if="groupIdx < buttonGroups.length - 1">
+          </template>
+
+          <!-- Shared description area at the bottom for all layouts -->
+          <div class="description" v-if="descGroup !== null && descIdx !== null && buttonGroups[descGroup] && buttonGroups[descGroup].buttons[descIdx]">
+            {{ buttonGroups[descGroup].buttons[descIdx].description }}
           </div>
+
           <div class="message" v-if="message">{{ message }}</div>
         </template>
       </template>

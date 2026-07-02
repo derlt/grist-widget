@@ -18,6 +18,7 @@ body {
 
 #app {
   margin: 8px;
+  min-width: 0;
 }
 
 .group-label {
@@ -27,10 +28,19 @@ body {
   color: var(--grist-theme-fg-secondary, #666);
   margin: 8px 4px 2px 4px;
   letter-spacing: 0.5px;
+  min-width: 0;
+}
+
+.group {
+  min-width: 0;
 }
 
 .group-container {
   width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .group-separator {
@@ -136,22 +146,22 @@ body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .ab-layout-vertical {
-  display: flex;
-  flex-direction: column;
   align-items: stretch;
 }
 
 .ab-layout-grid {
   display: grid;
   gap: 4px;
+  justify-items: start;
+  align-items: start;
 }
 
 .ab-cols-auto {
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min-content, 1fr));
 }
 
 .ab-cols-2 {
@@ -164,6 +174,13 @@ body {
 
 .ab-cols-4 {
   grid-template-columns: repeat(4, 1fr);
+}
+
+/* Group wrapper used inside horizontal/grid shared containers */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 /* ── Icons ── */
@@ -211,6 +228,12 @@ body {
   color: var(--grist-theme-fg, #333);
   font-size: 13px;
   font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
 }
 
 .ab-config-preview {
@@ -276,21 +299,23 @@ body {
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   z-index: 1000;
+  overflow: auto;
+  padding: 16px;
 }
 
 .confirm-dialog {
   background: var(--grist-theme-bg, white);
   border-radius: 8px;
-  padding: 24px;
-  max-width: 360px;
+  padding: 16px;
+  max-width: min(320px, calc(100vw - 32px));
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .confirm-text {
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
   font-size: 14px;
   line-height: 1.5;
   color: var(--grist-theme-fg, #333);
@@ -299,7 +324,7 @@ body {
 .confirm-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .confirm-cancel {
@@ -314,5 +339,82 @@ body {
 }
 
 .confirm-ok {
-  background: #1486ff;
+  background: var(--grist-theme-button-bg, #16B378);
+  color: var(--grist-theme-button-fg, white);
+  border: none;
+}
+
+.confirm-ok:hover {
+  background: var(--grist-theme-button-hover-bg, #009058);
+  color: var(--grist-theme-button-hover-fg, white);
+}
+
+/* ── Dark mode overrides ── */
+/* Applied when OS or browser is in dark mode. Grist theme CSS variables
+   should cover this, but these explicit overrides ensure readability
+   when variables don't provide enough contrast. */
+
+@media (prefers-color-scheme: dark) {
+
+  /* Config panel */
+  .ab-config {
+    background: transparent;
+  }
+
+  .ab-config-select {
+    background-color: #1e1e1e;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    color: #e0e0e0;
+    border-color: #555;
+  }
+
+  .ab-config-label,
+  .ab-config-hint {
+    color: #bbb;
+  }
+
+  .ab-config-preview .button {
+    border-color: #555;
+  }
+
+  .ab-config-cancel {
+    color: #ccc;
+    border-color: #555;
+  }
+
+  .ab-config-cancel:hover {
+    background: #333;
+  }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .confirm-dialog {
+    background: #1c1c1c;
+  }
+
+  .confirm-text {
+    color: #ddd;
+  }
+
+  .confirm-cancel {
+    color: #ccc;
+    border-color: #555;
+  }
+
+  .confirm-cancel:hover {
+    background: #333;
+  }
+
+  /* Group labels */
+  .group-label {
+    color: #bbb;
+  }
+
+  /* Status message */
+  .message {
+    color: var(--grist-theme-accent-text, #4ade80);
+  }
 }
