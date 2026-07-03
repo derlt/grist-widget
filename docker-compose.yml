@@ -1,0 +1,24 @@
+services:
+  grist:
+    image: gristlabs/grist:latest
+    restart: unless-stopped
+    volumes:
+      - grist-data:/persist
+    expose:
+      - "8484"
+    environment:
+      - GRIST_HOST=0.0.0.0
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - .:/usr/share/nginx/html/widgets:ro
+    depends_on:
+      - grist
+
+volumes:
+  grist-data:
