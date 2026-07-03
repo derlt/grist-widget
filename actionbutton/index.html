@@ -5,8 +5,8 @@
     <title>Grist Action Button</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
-    <script src="actionbutton.js?ver=15"></script>
-    <link rel="stylesheet" href="actionbutton.css?ver=15">
+    <script src="actionbutton.js?ver=16"></script>
+    <link rel="stylesheet" href="actionbutton.css?ver=16">
   </head>
   <body>
     <div id="app">
@@ -96,12 +96,16 @@
               <div class="group-label">{{ group.label }}</div>
               <div :class="containerClasses()">
                 <button v-for="(btn, btnIdx) in group.buttons"
-                        :class="buttonClasses(btn)"
-                        v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
+                        :class="[...buttonClasses(btn), ...buttonStateClasses(groupIdx, btnIdx, btn)]"
+                        :title="buttonTitle(btn)"
+                        :disabled="btn.disabled || isMyLoading(groupIdx, btnIdx)"
+                        v-on:click="applyActions(groupIdx, btnIdx, btn)"
                         v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
                         v-on:mouseleave="descGroup = null; descIdx = null">
-                  <span class="ab-icon" v-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
-                  {{ btn.button }}
+                  <span class="ab-spinner" v-if="isMyLoading(groupIdx, btnIdx)"></span>
+                  <span class="ab-icon" v-else-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
+                  <template v-if="isMyLoading(groupIdx, btnIdx)">{{ btn.loadingText || 'Working...' }}</template>
+                  <template v-else>{{ btn.button }}</template>
                 </button>
               </div>
               <hr class="group-separator" v-if="groupIdx < buttonGroups.length - 1">
@@ -114,12 +118,16 @@
               <div class="button-group" v-for="(group, groupIdx) in buttonGroups" :key="groupIdx">
                 <div class="group-label">{{ group.label }}</div>
                 <button v-for="(btn, btnIdx) in group.buttons"
-                        :class="buttonClasses(btn)"
-                        v-on:click="applyActions(btn.actions, btn.confirm, btn.confirmText)"
+                        :class="[...buttonClasses(btn), ...buttonStateClasses(groupIdx, btnIdx, btn)]"
+                        :title="buttonTitle(btn)"
+                        :disabled="btn.disabled || isMyLoading(groupIdx, btnIdx)"
+                        v-on:click="applyActions(groupIdx, btnIdx, btn)"
                         v-on:mouseover="descGroup = groupIdx; descIdx = btnIdx"
                         v-on:mouseleave="descGroup = null; descIdx = null">
-                  <span class="ab-icon" v-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
-                  {{ btn.button }}
+                  <span class="ab-spinner" v-if="isMyLoading(groupIdx, btnIdx)"></span>
+                  <span class="ab-icon" v-else-if="effectiveIcon(btn)" v-html="iconSvg(effectiveIcon(btn))"></span>
+                  <template v-if="isMyLoading(groupIdx, btnIdx)">{{ btn.loadingText || 'Working...' }}</template>
+                  <template v-else>{{ btn.button }}</template>
                 </button>
               </div>
             </div>
@@ -129,9 +137,15 @@
           <div class="description" v-if="descGroup !== null && descIdx !== null && buttonGroups[descGroup] && buttonGroups[descGroup].buttons[descIdx]">
             {{ buttonGroups[descGroup].buttons[descIdx].description }}
           </div>
-
-          <div class="message" v-if="message">{{ message }}</div>
         </template>
+
+        <div class="toast-container">
+          <div v-for="toast in toasts" :key="toast.id"
+               :class="['toast', 'toast-' + toast.type]">
+            <span class="toast-icon" v-html="iconSvg(toast.type === 'success' ? 'check' : 'x')"></span>
+            {{ toast.text }}
+          </div>
+        </div>
       </template>
     </div>
   </body>

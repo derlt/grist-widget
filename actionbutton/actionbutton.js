@@ -70,7 +70,10 @@ var data = {
   config: false,
   options: mergeDefaults(null),
   draftOptions: mergeDefaults(null),
-  ICON_NAMES: ICON_NAMES
+  ICON_NAMES: ICON_NAMES,
+  loadingKey: null,
+  toasts: [],
+  nextToastId: 0
 };
 
 function handleError(err) {
@@ -78,31 +81,51 @@ function handleError(err) {
   data.status = String(err).replace(/^Error: /, '');
 }
 
-function applyActions(actions, confirm, confirmText) {
-  if (confirm) {
+function applyActions(groupIdx, btnIdx, btn) {
+  if (btn.disabled) return;
+  if (data.loadingKey !== null) return;
+  if (btn.confirm) {
     data.confirmDialog = {
-      actions: actions,
-      confirmText: confirmText || 'Are you sure?'
+      groupIdx: groupIdx,
+      btnIdx: btnIdx,
+      btn: btn,
+      confirmText: btn.confirmText || 'Are you sure?'
     };
     return;
   }
-  executeActions(actions);
+  executeActions(groupIdx, btnIdx, btn);
 }
 
-async function executeActions(actions) {
-  data.message = 'Working...';
+async function executeActions(groupIdx, btnIdx, btn) {
+  var key = groupIdx + ':' + btnIdx;
+  data.loadingKey = key;
   try {
-    await grist.docApi.applyUserActions(actions);
-    data.message = 'Done';
+    var minDelay = new Promise(function(resolve) { setTimeout(resolve, 600); });
+    await Promise.all([grist.docApi.applyUserActions(btn.actions), minDelay]);
+    data.loadingKey = null;
+    addToast(btn.successText || 'Done', 'success');
   } catch (e) {
-    data.message = 'Please grant full access for writing. (' + e + ')';
+    data.loadingKey = null;
+    addToast('Please grant full access for writing. (' + e + ')', 'error');
   }
 }
 
+function addToast(text, type) {
+  var id = data.nextToastId++;
+  data.toasts.push({id: id, text: text, type: type});
+  setTimeout(function() {
+    var idx = -1;
+    for (var i = 0; i < data.toasts.length; i++) {
+      if (data.toasts[i].id === id) { idx = i; break; }
+    }
+    if (idx >= 0) data.toasts.splice(idx, 1);
+  }, 3000);
+}
+
 function doConfirm() {
-  var actions = data.confirmDialog.actions;
+  var d = data.confirmDialog;
   data.confirmDialog = null;
-  executeActions(actions);
+  executeActions(d.groupIdx, d.btnIdx, d.btn);
 }
 
 function cancelConfirm() {
@@ -116,6 +139,9 @@ function onRecord(row, mappings) {
     data.buttonGroups = [];
     data.descGroup = null;
     data.descIdx = null;
+    if (data.loadingKey === null) {
+      data.toasts = [];
+    }
 
     if (!mappings || !mappings.ActionButton) {
       data.status = 'Please map at least one column to "Action Buttons" in the Creator Panel.';
@@ -199,6 +225,25 @@ function iconSvg(name) {
   return ICONS[name] || '';
 }
 
+function isLoading() {
+  return data.loadingKey !== null;
+}
+
+function isMyLoading(groupIdx, btnIdx) {
+  return data.loadingKey === groupIdx + ':' + btnIdx;
+}
+
+function buttonStateClasses(groupIdx, btnIdx, btn) {
+  var cls = [];
+  if (btn.disabled) cls.push('ab-disabled');
+  if (data.loadingKey !== null && !isMyLoading(groupIdx, btnIdx)) cls.push('ab-loading');
+  return cls;
+}
+
+function buttonTitle(btn) {
+  return btn.disabled ? (btn.disabledReason || 'This button is disabled') : '';
+}
+
 function openConfig() {
   data.draftOptions = {
     variant: data.options.variant,
@@ -255,8 +300,12 @@ ready(function() {
       effectiveSize: effectiveSize,
       effectiveIcon: effectiveIcon,
       buttonClasses: buttonClasses,
+      buttonStateClasses: buttonStateClasses,
+      buttonTitle: buttonTitle,
       containerClasses: containerClasses,
       iconSvg: iconSvg,
+      isLoading: isLoading,
+      isMyLoading: isMyLoading,
       openConfig: openConfig,
       saveConfig: saveConfig,
       cancelConfig: cancelConfig

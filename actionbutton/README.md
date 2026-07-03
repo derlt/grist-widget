@@ -20,6 +20,10 @@ Build one or more buttons that send customizable Grist user actions (e.g. `Updat
 | `icon` | string | no | Icon name from built-in set (see below), or `""` for no icon |
 | `confirm` | boolean | no | If `true`, shows a confirmation dialog before executing |
 | `confirmText` | string | no | Custom confirmation prompt text (default: `"Are you sure?"`) |
+| `disabled` | boolean | no | If `true`, button is grayed out and unclickable |
+| `disabledReason` | string | no | Tooltip explaining why the button is disabled (shown on hover) |
+| `loadingText` | string | no | Label shown on the button while the action runs (default: `"Working..."`) |
+| `successText` | string | no | Text shown in the success toast (default: `"Done"`) |
 
 ### Example Cell Value
 
@@ -66,12 +70,19 @@ Click the **gear icon** (widget options) in Grist to open the config panel:
 
 Per-button `variant`, `size`, and `icon` override the defaults from the config panel.
 
+## UX & Feedback
+
+- **Click physics** — Button briefly shrinks (scale 0.98) when pressed, providing tactile feedback.
+- **Loading state** — Clicked button shows a spinning ring and replaces its label with "Working..." (or custom `loadingText`). All other buttons become dimmed and unclickable. The loading state is visible for at least 600ms, even on fast actions.
+- **Success toast** — A dark popup with a green checkmark slides in at the bottom-left corner: "Done" (or custom `successText`). It auto-dismisses after 3 seconds.
+- **Error toast** — If the action fails, a red error toast appears at the bottom-left with the error message.
+- **Smart disabling** — Adding `"disabled": true` to a button object grays it out and prevents clicks. Add `"disabledReason"` to show a tooltip explaining why (e.g., `"Please fill out the Price column"`). Disabled buttons show an arrow cursor (not pointer).
+- **Hover description** — When a button has a `description` field, hovering over it shows the text below the button groups.
+
 ## Status Messages
 
 - **Waiting for data...** — Widget initializing.
 - **Please map at least one column to "Action Buttons" in the Creator Panel.** — No columns mapped.
 - **No actions configured for this record.** — The current record has no valid button definitions.
-- **Working...** — Actions are being executed.
-- **Done** — Actions completed successfully.
 - **Please grant full access for writing.** — The widget lacks write permission.
 - *Error message starting with `Column "..."`* — Invalid cell format, listing missing keys.
