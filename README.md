@@ -55,6 +55,34 @@ yarn install
 yarn run grist:dev
 ```
 
+# Docker Deployment (Plugin Discovery)
+
+Local widgets can be served directly by the Grist Docker image without an extra HTTP server. See the files at the repo root:
+
+| File | Purpose |
+|---|---|
+| `plugins/my-widgets/manifest.yml` | Grist plugin manifest (tells Grist where to find widgets) |
+| `plugins/my-widgets/widgets.json` | Widget definitions with plugin-relative URLs |
+| `widget-settings.json` | Editable config: enable/disable widgets and set access levels |
+| `docker-compose.yml` | Mounts repo into Grist and sets `GRIST_USER_ROOT` |
+| `widget.env` | Environment variables for the Grist container |
+| `deploy.sh` | Runs `setup.sh` per widget, creates symlinks, generates `widgets.json` |
+
+Quick start:
+
+```bash
+# 1. Download vendor deps (Vue, Grist API) and prepare plugin directory
+bash deploy.sh
+
+# 2. Start Grist
+docker compose up -d
+
+# 3. Add a Custom Widget in Grist at:
+#    /plugins/my-widgets/actionbutton/index.html
+```
+
+To add more widgets, edit `widget-settings.json`, set `"enabled": true`, and re-run `deploy.sh`.
+
 ## Other widgets
 
 There are many other custom widgets than those included here. Some people maintain lists:

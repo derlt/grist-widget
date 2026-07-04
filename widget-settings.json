@@ -1,0 +1,7 @@
+{
+  "_comment": "List of local widgets to deploy. Each entry must match a directory at the repo root.",
+  "_comment_add": "To add a widget, copy one of the entries below, set enabled: true, and run deploy.sh.",
+  "widgets": [
+    { "name": "Action button", "dir": "actionbutton", "enabled": true }
+  ]
+}

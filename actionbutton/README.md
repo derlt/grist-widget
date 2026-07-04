@@ -89,41 +89,5 @@ Per-button `variant`, `size`, and `icon` override the defaults from the config p
 
 ## Docker Deployment
 
-This widget (and all other widgets in this repo) can be served directly by the Grist Docker image via the [Plugin Discovery](https://github.com/gristlabs/grist-widget#plugin-discovery) mechanism — no extra HTTP server needed.
-
-### Files
-
-| File | Purpose |
-|---|---|
-| `setup.sh` | Downloads vendored dependencies (Vue, Grist API) for offline/airgap use |
-| `deploy.sh` | Runs `setup.sh` for every widget, prepares the plugin directory |
-| `docker-compose.yml` | Docker Compose with volume mount and env vars |
-| `custom-widget-path/` | Directory tree that mirrors the plugin layout inside the container |
-| `setting-custom-widgets/` | Widget enable/disable configuration |
-| `widget-env-vars/` | Environment variable files (`.env` format) |
-
-### Quick start
-
-```bash
-# 1. Download vendor dependencies for each widget
-bash setup.sh
-
-# 2. Start Grist with widget mount
-docker compose up -d
-
-# 3. In Grist, add a Custom Widget with URL:
-#    /plugins/widgets/actionbutton/index.html
-```
-
-### Volume mount explained
-
-The `docker-compose.yml` mounts the repo root (`../../`) to `/grist/user/plugins/widgets/` inside the container. Grist scans `$GRIST_USER_ROOT/plugins/` (set via `GRIST_USER_ROOT=/grist/user`) for directories containing `manifest.yml`. The `custom-widget-path/` directory provides the expected layout with `manifest.yml` and `widgets.json`.
-
-### Airgap deployment
-
-On a machine with no internet access:
-
-1. Copy the entire `grist-widget` repo to the machine
-2. Copy the vendored JS files (from a machine that has run `setup.sh`) alongside it
-3. Start with `docker compose up -d`
+See `../docker-compose.yml`, `../deploy.sh`, and `../widget-settings.json` at the repo root for deploying this widget (and others) into Grist via Docker.
 

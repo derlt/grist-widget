@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Action button",
+    "widgetId": "@gristlabs/widget-actionbutton",
+    "url": "/plugins/my-widgets/actionbutton/index.html",
+    "accessLevel": "full",
+    "renderAfterReady": true
+  }
+]
