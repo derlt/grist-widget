@@ -15,7 +15,7 @@ services:
       # Mounts the entire repo root so Grist serves widget files
       # via Plugin Discovery. Symlinks in plugins/my-widgets/ point
       # back to each widget's directory (e.g. ../../actionbutton).
-      - .:/grist/user:ro
+      - ./plugins:/grist/user/plugins:ro
 
     env_file:
       - ./widget.env
