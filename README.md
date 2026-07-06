@@ -68,6 +68,8 @@ Local widgets can be served directly by the Grist Docker image without an extra 
 | `widget.env` | Environment variables for the Grist container |
 | `deploy.sh` | Runs `setup.sh` per widget, creates symlinks, generates `widgets.json` |
 
+> **Same-origin hosting:** Set `GRIST_TRUST_PLUGINS=true` in `widget.env` to serve plugins on the same origin as Grist (avoids cross-origin issues with local widgets). This applies to **all** deployed widgets in the plugin directory — only enable it if you trust every widget you deploy.
+ 
 Quick start:
 
 ```bash
