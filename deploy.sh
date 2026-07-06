@@ -59,7 +59,7 @@ for w in cfg['widgets']:
     entries.append({
       'name': w['name'],
       'widgetId': '@local/' + w['dir'],
-      'url': '/plugins/my-widgets/' + w['dir'] + '/index.html',
+      'url': w['dir'] + '/index.html',
       'accessLevel': w.get('accessLevel', 'full'),
       'renderAfterReady': True
     })
